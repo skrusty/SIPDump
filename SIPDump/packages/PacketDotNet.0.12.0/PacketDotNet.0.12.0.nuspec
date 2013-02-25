@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>PacketDotNet</id>
+    <version>0.12.0</version>
+    <title />
+    <authors>Chris.Young</authors>
+    <owners>Chris.Young</owners>
+    <licenseUrl>https://sourceforge.net/directory/license:lgplv3/</licenseUrl>
+    <projectUrl>http://sourceforge.net/apps/mediawiki/packetnet</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>High performance .Net assembly for dissecting and constructing network packets such as ethernet, ip, tcp, udp etc.</description>
+    <references>
+      <reference file="PacketDotNet.dll" />
+    </references>
+  </metadata>
+</package>
