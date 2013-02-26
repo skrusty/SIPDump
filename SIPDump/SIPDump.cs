@@ -97,11 +97,15 @@ namespace SIPDump
             captureFileWriter.Close();
 
             // Create details file
-            //using (StreamWriter sr = new StreamWriter(File.OpenWrite("Calls\\" + CallID + ".txt")))
-            //{
-            //    sr.WriteLine("Call Started: " + CallStarted.ToString());
-            //    sr.WriteLine("");
-            //}
+            using (StreamWriter sr = new StreamWriter(File.OpenWrite("Calls\\" + CallID + ".txt")))
+            {
+                sr.WriteLine(string.Format("{0,-20}: {1}", "Call Started", CallStarted.ToString()));
+                sr.WriteLine(string.Format("{0,-20}: {1}", "Callee", this.CalleeIP.ToString()));
+                // sr.WriteLine(string.Format("{0,-20}: {1}", "Callee ID", this.CalleeID.ToString()));
+                sr.WriteLine(string.Format("{0,-20}: {1}", "Caller", this.CallerIP.ToString()));
+                // sr.WriteLine(string.Format("{0,-20}: {1}", "Caller ID", this.CallerID.ToString()));
+                sr.WriteLine(string.Format("{0,-20}: {1}", "Hungup", this.WhoHungUp.ToString()));
+            }
 
 
 
@@ -326,10 +330,11 @@ namespace SIPDump
                                 }
                             }
 
-                            if (r.StatusCodeType == SIP_StatusCodeType.Success && Call.Calls[r.CallID].SeenBYE)
-                            {
-                                Call.Calls[r.CallID].Confirmed = true;
-                            }
+                            if(Call.Calls.ContainsKey(r.CallID))
+                                if (r.StatusCodeType == SIP_StatusCodeType.Success && Call.Calls[r.CallID].SeenBYE)
+                                {
+                                    Call.Calls[r.CallID].Confirmed = true;
+                                }
                         }
 
                         // Add packet to history
