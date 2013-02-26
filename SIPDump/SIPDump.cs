@@ -149,8 +149,8 @@ namespace SIPDump
         {
             Console.CancelKeyPress += Console_CancelKeyPress;
             string ver = SharpPcap.Version.VersionString;
-            /* Print SharpPcap version */
-            Console.WriteLine("SIPDump using: SharpPcap {0}, Created by www.xdev.net", ver);
+            
+            Console.WriteLine("SIPDump using: SharpPcap {0}", ver);
             Console.WriteLine();
 
             /* Retrieve the device list */
@@ -193,12 +193,7 @@ namespace SIPDump
 
             //tcpdump filter to capture only TCP/IP packets
             string filter = "ip and tcp";
-            //device.Filter = filter;
 
-            Console.WriteLine();
-            Console.WriteLine
-                ("-- The following tcpdump filter will be applied: \"{0}\"", 
-                filter);
             Console.WriteLine
                 ("-- Listening on {0}, hit 'Ctrl-C' to exit...",
                 device.Description);
@@ -210,7 +205,6 @@ namespace SIPDump
             // Start capture 'INFINTE' number of packets
             device.Capture();
 
-            // Close the pcap device
             // (Note: this line will never be called since
             //  we're capturing infinite number of packets
             device.Close();
@@ -271,7 +265,6 @@ namespace SIPDump
                         {
                             SIP_Request r = (SIP_Request)msg;                           
 
-                            // Console.WriteLine(r.RequestLine.Method);
                             if (!Call.Calls.ContainsKey(r.CallID))
                             {
                                 if (r.RequestLine.Method == "INVITE")
@@ -352,11 +345,9 @@ namespace SIPDump
                                 Call.Calls[msg.CallID].CloseCall();
                             }
                         }
-                        // Console.WriteLine(System.Text.ASCIIEncoding.ASCII.GetString(udpPacket.PayloadData));
                     }
                     else
                     {
-                        // Console.WriteLine("UDP SourceP: {0}, DPort: {1}", udpPacket.SourcePort, udpPacket.DestinationPort);
                         Call c = Call.GetCallByRTPPort(udpPacket.SourcePort);
                         if (c != null)
                             c.WritePacket(e.Packet, Call.PacketType.RTP);
