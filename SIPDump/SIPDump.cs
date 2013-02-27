@@ -1,6 +1,8 @@
 using LumiSoft.Net.SDP;
 using LumiSoft.Net.SIP.Message;
 using LumiSoft.Net.SIP.Stack;
+using NAudio.Codecs;
+using NAudio.Wave;
 using PacketDotNet;
 using SharpPcap;
 using SharpPcap.LibPcap;
@@ -30,11 +32,11 @@ namespace SIPDump
         public int DestinationPort { get; set; }
         public int CallerRTPPort { get; set; }
         public int CalleeRTPPort { get; set; }
-        public int CallerRTPCPort
+        public int CallerRTCPPort
         {
             get { return CallerRTPPort + 1; }
         }
-        public int CalleeRTPCPort
+        public int CalleeRTCPPort
         {
             get { return CalleeRTPPort + 1; }
         }
@@ -47,6 +49,8 @@ namespace SIPDump
         public List<UdpPacket> SIPMessages { get; set; }
 
         public CallDirection WhoHungUp { get; set; }
+
+        private WaveFileWriter wavOutput;
         #endregion
 
         #region Public Static Properties
@@ -86,16 +90,28 @@ namespace SIPDump
 
             //    SIPMessages.Add(udpPacket);
             //}
-            //if (type == PacketType.RTP)
-            //{
-            //    if (wavWriter == null)
-            //    {
-            //        wavWriter = new WaveFileWriter("Calls\\" + CallID + ".wav", g726Format);
-            //    }
-            //    var packet = PacketDotNet.Packet.ParsePacket(raw.LinkLayerType, raw.Data);
-            //    var udpPacket = PacketDotNet.UdpPacket.GetEncapsulated(packet);
-            //    wavWriter.Write(udpPacket.PayloadData, 0, udpPacket.PayloadData.Length);
-            //}
+            if (type == PacketType.RTP)
+            {
+                var packet = PacketDotNet.Packet.ParsePacket(raw.LinkLayerType, raw.Data);
+                var udpPacket = PacketDotNet.UdpPacket.GetEncapsulated(packet);
+                
+                // Only write out RTP packets to wav, and not RTPC
+                if (udpPacket.SourcePort != this.CalleeRTCPPort || udpPacket.SourcePort != this.CallerRTCPPort)
+                {
+                    if (wavOutput == null)
+                    {
+                        wavOutput = new WaveFileWriter("Calls\\" + CallID + ".wav", new WaveFormat(8000, 16, 1));
+                    }
+
+                    for (int index = 0; index < udpPacket.PayloadData.Length; index++)
+                    {
+                        // assuming this is MuLaw, need to handle other formats like g729, g726 etc
+                        short pcm = MuLawDecoder.MuLawToLinearSample(udpPacket.PayloadData[index]);
+                        wavOutput.WriteByte((byte)(pcm & 0xFF));
+                        wavOutput.WriteByte((byte)(pcm >> 8));
+                    }
+                }
+            }
             
         }
 
@@ -103,6 +119,9 @@ namespace SIPDump
         {
             // Close capture file
             captureFileWriter.Close();
+
+            // Close audio file
+            wavOutput.Close();
 
             // Create details file
             using (StreamWriter sr = new StreamWriter(File.OpenWrite("Calls\\" + CallID + ".txt")))
@@ -129,7 +148,7 @@ namespace SIPDump
             foreach (var c in Calls)
             {
                 if (c.Value.CalleeRTPPort == port || c.Value.CallerRTPPort == port 
-                    || c.Value.CalleeRTPCPort == port || c.Value.CallerRTPCPort == port)
+                    || c.Value.CalleeRTCPPort == port || c.Value.CallerRTCPPort == port)
                     return c.Value;
             }
             return null;
