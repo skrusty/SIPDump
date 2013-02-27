@@ -30,6 +30,14 @@ namespace SIPDump
         public int DestinationPort { get; set; }
         public int CallerRTPPort { get; set; }
         public int CalleeRTPPort { get; set; }
+        public int CallerRTPCPort
+        {
+            get { return CallerRTPPort + 1; }
+        }
+        public int CalleeRTPCPort
+        {
+            get { return CalleeRTPPort + 1; }
+        }
         public IPAddress CallerIP { get; set; }
         public IPAddress CalleeIP { get; set; }
 
@@ -106,21 +114,11 @@ namespace SIPDump
                 // sr.WriteLine(string.Format("{0,-20}: {1}", "Caller ID", this.CallerID.ToString()));
                 sr.WriteLine(string.Format("{0,-20}: {1}", "Hungup", this.WhoHungUp.ToString()));
             }
-
-
-
-            //if (wavWriter != null)
-            //{
-            //    wavWriter.Flush();
-            //    wavWriter.Close();
-            //}
         }
 
         public void WriteAudioFile()
         {
-            // WaveFormatEncoding.Adpcm
             
-
         }
         #endregion
 
@@ -130,7 +128,8 @@ namespace SIPDump
         {
             foreach (var c in Calls)
             {
-                if (c.Value.CalleeRTPPort == port || c.Value.CallerRTPPort == port)
+                if (c.Value.CalleeRTPPort == port || c.Value.CallerRTPPort == port 
+                    || c.Value.CalleeRTPCPort == port || c.Value.CallerRTPCPort == port)
                     return c.Value;
             }
             return null;
@@ -346,8 +345,12 @@ namespace SIPDump
                             {
                                 // Close off the call now last data has been written
                                 Console.WriteLine("Call Ended: " + msg.CallID);
+                                
                                 // Close off the call
                                 Call.Calls[msg.CallID].CloseCall();
+
+                                // Remove the call from the in-memory list
+                                Call.Calls.Remove(msg.CallID);
                             }
                         }
                     }
