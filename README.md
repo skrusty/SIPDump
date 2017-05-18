@@ -1,4 +1,5 @@
 # SIPDump
+Please Note: I wrote this code a long time ago, it's handling of SIP is quite poor and needs quite a bit of work to make it useful. More here for reference.
 
 ## Overview
 SIPDump writes each call it sees on the interface to a pcap file, one per call, the filename matches the Call ID.
